@@ -1,0 +1,43 @@
+---
+# tasks file for ansible-free-ebooks
+- name: Add ansible-free-ebooks:{{ packtpub_src }} to crontab
+  cron:
+    name: "Add {{ packtpub_src }} to crontab"
+    minute: "{{ minute }}"
+    hour: "{{ hour }}"
+    day: "{{ day }}"
+    month: "{{ month }}"
+    weekday: "{{ weekday }}"
+    job: "bash {{ dest_path }}/{{ packtpub_src }}.sh > /dev/null"
+  tags: [packtpub] 
+
+- name: Copy {{ packtpub_src }}.j2 to {{ dest_path }}/{{ packtpub_src }}.sh
+  template:
+    src: "{{ packtpub_src }}.j2"
+    dest: "{{ dest_path }}/{{ packtpub_src }}.sh"
+    owner: root
+    group: root
+    mode: 0644
+    force: yes
+  tags: [packtpub]
+
+- name: Add ansible-free-ebooks:{{ microsoft_src }} to crontab
+  cron:
+    name: "Add {{ microsoft_src }} to crontab"
+    minute: "{{ minute }}"
+    hour: "{{ hour }}"
+    day: "{{ day }}"
+    month: "{{ month }}"
+    weekday: "{{ weekday }}"
+    job: "bash {{ dest_path }}/{{ microsoft_src }}.sh > /dev/null"
+  tags: [microsoft]
+
+- name: Copy {{ microsoft_src }}.j2 to {{ dest_path }}/{{ microsoft_src }}.sh
+  template:
+    src: "{{ microsoft_src }}.j2"
+    dest: "{{ dest_path }}/{{ microsoft_src }}.sh"
+    owner: root
+    group: root
+    mode: 0644
+    force: yes
+  tags: [microsoft]

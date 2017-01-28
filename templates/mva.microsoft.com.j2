@@ -1,0 +1,44 @@
+#!/bin/bash
+
+#Create array of all books
+mapfile -t lines < <(curl -s {{ microsoft_link }} | grep '<h2 class="eBookName">'| sed 's/:\\n//' | sed '1~2d')
+
+{% raw %}
+#Number of total books in array based on 2016-12-13
+TOTALBOOKS=${#lines[*]}
+TOTALTODAY=$(($TOTALBOOKS-1))
+
+#Check last book from array and write it to file mva.book
+LASTBOOK=$(printf "%s\n" "${lines[-1]}")
+echo "$LASTBOOK" > ./mva.book
+
+#Read last book from file mva.book
+FILE="./mva.book"
+SOURCE=$(cat "$FILE")
+
+#Check if there is a new book if yes printf every new book
+if [ "$SOURCE" == "$LASTBOOK" ]; then
+ echo "There is no new book"
+else
+ for ((i=$TOTALTODAY; i<=$(( $TOTALBOOKS -1 )); i++)) 
+ do
+     LASTBOOK=$(printf "%s\n" "${lines[$i]}")
+     TITLE=$(printf "$LASTBOOK" | cut -b 23- | sed -r 's/<\/h2>//')
+     IMAGE=$(curl -s https://mva.microsoft.com/ebooks | grep '<img alt="'"$TITLE"'"' | sed -rn 's/.*src="([^,]+).png".*/\1/p'| awk '{print $0".png"}')
+{%endraw%}      
+
+   curl -H "Content-Type: application/json" -X POST -d \
+   '{"channel": "{{ channel }}",
+    "username": "{{ username }}",
+    "attachments": [
+     {
+       "fallback": "Required plain-text summary of the attachment.",
+       "pretext": "{{ pretext }}",
+       "author_name": "{{ author_name }}",
+       "title": "'"$TITLE"'","title_link":"'"{{ microsoft_link }}"'",
+       "text":"{{ text }}",
+       "image_url": "'"$IMAGE"'"
+     }]
+   }' {{ hooks }} 
+ done
+fi
