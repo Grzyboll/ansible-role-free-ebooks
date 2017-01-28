@@ -1,0 +1,28 @@
+#!/bin/bash
+
+#----------------
+# Check whether there is a .jpg extension
+CHECK=$(curl -H "Content-Type: application/xml" -X GET {{ packtpub_link }} | grep sites/default/files/imagecache/dotd_main_image | grep ".jpg")
+
+if [[ $CHECK  ]]
+then
+        IMAGE=$(curl -H "Content-Type: application/xml" -X GET {{ packtpub_link }} | grep sites/default/files/imagecache/dotd_main_image | sed -rn 's/.*data-original="([^,]+).jpg".*/\1/p' | cut -c 3- | sed 's# #%20#g' | awk '{print $0".jpg"}')
+else
+        IMAGE=$(curl -H "Content-Type: application/xml" -X GET {{ packtpub_link }} | grep sites/default/files/imagecache/dotd_main_image | sed -rn 's/.*data-original="([^,]+).png".*/\1/p' | cut -c 3- | sed 's# #%20#g' | awk '{print $0".png"}')
+fi
+
+TITLE=$(curl {{ packtpub_link }} | grep -A2 -E -m 1 '<div class="dotd-title">' | sed -n 3p | awk '{$NF="";sub(/[ \t]+$/,"")}1')
+
+curl -H "Content-Type: application/json" -X POST -d \
+'{"channel": "{{ channel }}",
+  "username": "{{ username }}",
+  "attachments": [
+  {
+    "fallback": "Required plain-text summary of the attachment.",
+    "pretext": "{{ pretext }}",
+    "author_name": "{{ author_name }}",
+    "title": "'"$TITLE"'","title_link":"'"{{ packtpub_link }}"'",
+    "image_url":"'"https://$IMAGE"'"
+   }]
+ }' {{ hooks }}
+

@@ -1,0 +1,20 @@
+galaxy_info:
+  author: Grzyboll
+  description: This Role checks every day free ebooks and sends them to slack channel.
+
+  license: MIT
+
+  min_ansible_version: 1.9
+
+  platforms:
+  - name: EL
+    versions:
+    - all
+  galaxy_tags:
+    - ebooks
+    - ansible
+    - bash
+    - microsoft
+    - packtpub 
+
+dependencies: []
